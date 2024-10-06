@@ -7,14 +7,19 @@
     <title>Weather App</title>
     <style>
         body { 
-            font-family: 'Roboto', sans-serif; 
-            background-color: #f4f6f8;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+
+            /* 배경 이미지 설정 */
+            background-image: url('/static/image/Clouds.jpg');
+            background-size: cover;       /* 이미지가 화면을 꽉 채우도록 */
+            background-position: center;  /* 이미지의 가운데가 화면에 위치하도록 */
+            background-repeat: no-repeat; /* 이미지가 반복되지 않도록 */
         }
         
         .container {
@@ -58,7 +63,16 @@
             background-color: #0056b3;
         }
 
-        #weather-info, #network-info {
+        #weather-info {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-align: center; 
+            border: 1px solid #ddd;
+        } 
+        
+        #network-info {
             margin-top: 20px;
             padding: 15px;
             border-radius: 5px;
@@ -87,22 +101,6 @@
             font-size: 40px;
             display: inline-block;
             margin-right: 10px;
-        }
-
-        #search-history {
-            font-size: 12px;
-            color: #666;
-            margin-top: 20px;
-            padding: 40px;  /* 안쪽 여백 */
-            border-radius: 10px;  /* 둥근 모서리 */
-            background-color: #f9f9f9;  /* 배경색 */
-            border: 1px solid #ddd;  /* 테두리 */
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);  /* 그림자 효과 */
-            /* 위치 조정 */
-            position: absolute;
-            top: 10px;
-            right: 10px; 
-            width: 150px;
         }
 
         .search-item {
@@ -161,15 +159,6 @@
         </div>
         <div id="weather-info"></div>
         <div id="network-info"></div>
-    </div>
-
-    <div id="search-history">
-        <h4>Search History:</h4>
-        <ul>
-            {% for city in search_history %}
-                <li class="search-item">{{ city }}</li>
-            {% endfor %}
-        </ul>
     </div>
 
     <script>

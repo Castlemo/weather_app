@@ -23,7 +23,7 @@ def weather():
     city = request.args.get('city').strip().lower()
     city = " ".join(city.split())  # 중간에 여러 공백이 있을 경우에도 한 칸 공백으로 만듦
     api_key = '008e5844dd6ea339f1fcbc7024bd54c8'
-    client_ip = request.remote_addr  # 클라이언트 IP 가져오기
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)  # 클라이언트 IP 가져오기
 
     # API에 도시 이름을 직접 요청
     response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={city.title()}&appid={api_key}&units=metric")
@@ -33,7 +33,7 @@ def weather():
         temperature = data['main']['temp']
         description = data['weather'][0]['description']
 
-        if city not in search_history:
+        if city.title() not in search_history:
             search_history.append(city.title())
 
         return jsonify({
