@@ -7,40 +7,45 @@
     <title>Weather App</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
-            background: url("/static/image/wrtFileImageView.do.jpeg") no-repeat center center fixed;
-            background-size: cover;
+            font-family: 'Roboto', sans-serif; 
+            background-color: #f4f6f8;
             margin: 0;
             padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         
         .container {
-            max-width: 600px;
-            margin: 50px auto;
+            max-width: 500px;
+            width: 100%;
             padding: 20px;
             border-radius: 10px;
-            background-color: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
 
         h1 {
-            text-align: center;
             color: #333;
-            font-family: 'Comic Sans MS', cursive;
+            font-size: 24px;
+            margin-bottom: 20px;
         }
 
         input { 
-            max-width: 550px;
             width: 100%;
-            margin: 5px 0;
-            padding: 10px;
-            border: 1px solid #ccc;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
             border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
         }
 
         button { 
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background-color: #007bff;
             color: white;
             border: none;
@@ -55,15 +60,16 @@
 
         #weather-info, #network-info {
             margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
+            padding: 15px;
             border-radius: 5px;
             background-color: #f9f9f9;
-            text-align: center;
+            text-align: left;
+            border: 1px solid #ddd;
         }
 
         #weather-info h3, #network-info h3 {
-            margin: 0;
+            margin: 0 0 10px 0;
+            font-size: 18px;
             color: #333;
         }
 
@@ -78,24 +84,25 @@
         }
 
         .icon {
-            font-size: 50px;
+            font-size: 40px;
+            display: inline-block;
+            margin-right: 10px;
         }
 
         #search-history {
-            position: absolute;
-            left: 20px;
-            bottom: 20px;
             font-size: 12px;
             color: #666;
+            margin-top: 20px;
         }
 
         .search-item {
             list-style-type: none;
-            margin: 3px 0;
+            margin: 5px 0;
         }
 
         .search-item::before {
             content: "• ";
+            color: #007bff;
         }
 
         /* 로딩바 스타일 */
@@ -104,26 +111,29 @@
             background-color: #f3f3f3;
             border-radius: 5px;
             overflow: hidden;
+            margin-top: 10px;
         }
 
         .loading-bar-fill {
-            height: 10px;
+            height: 8px;
             background-color: #007bff;
             width: 0;
-            animation: loading 2s linear infinite;
+            animation: loading 1.5s ease-in-out infinite;
         }
 
         @keyframes loading {
             0% { width: 0%; }
-            100% { width: 100%; }
+            50% { width: 100%; }
+            100% { width: 0%; }
         }
 
         /* 네트워크 상태 */
         .network-status {
-            margin-top: 20px;
+            margin-top: 10px;
             padding: 10px;
             border-radius: 5px;
             text-align: center;
+            font-size: 14px;
         }
 
         .status-good { background-color: #28a745; color: white; }
