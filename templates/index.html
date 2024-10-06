@@ -93,6 +93,16 @@
             font-size: 12px;
             color: #666;
             margin-top: 20px;
+            padding: 40px;  /* 안쪽 여백 */
+            border-radius: 10px;  /* 둥근 모서리 */
+            background-color: #f9f9f9;  /* 배경색 */
+            border: 1px solid #ddd;  /* 테두리 */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);  /* 그림자 효과 */
+            /* 위치 조정 */
+            position: absolute;
+            top: 10px;
+            right: 10px; 
+            width: 150px;
         }
 
         .search-item {
@@ -220,6 +230,12 @@
             const networkInfoDiv = document.getElementById('network-info');
             let statusMessage = '';
             let statusClass = '';
+            
+            if (status === 200) {
+                statusServer = `Client 🔄 Server 🟢🟢🟢 (Status: ${status}) 😊`;
+            } else {
+                statusServer = `Client 🔄 Server 🔴🔴🔴 (Status: ${status}) ⚠️`;
+            }
 
             if (timeTaken < 150) {
                 statusMessage = `Network status: Good (${timeTaken} ms)`;
@@ -235,7 +251,7 @@
             networkInfoDiv.innerHTML = `
                 <h3>Network Information</h3>
                 <p>Request Duration: ${timeTaken} ms</p>
-                <p>Status: ${status}</p>
+                <p>Status: ${statusServer}</p>
                 <p>Client IP: ${clientIp}</p>  <!-- 추가된 부분 -->
                 <div class="network-status ${statusClass}">${statusMessage}</div>
             `;
