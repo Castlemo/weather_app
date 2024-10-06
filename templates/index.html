@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="/static/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: url("/static/image/wrtFileImageView.do.jpeg") no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        input { 
+            max-width: 550px;
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button { 
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #weather-info, #network-info {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        #weather-info h3, #network-info h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        #weather-info p, #network-info p {
+            margin: 5px 0;
+            color: #555;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .icon {
+            font-size: 50px;
+        }
+
+        #search-history {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .search-item {
+            list-style-type: none;
+            margin: 3px 0;
+        }
+
+        .search-item::before {
+            content: "• ";
+        }
+
+        /* 로딩바 스타일 */
+        .loading-bar {
+            width: 100%;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .loading-bar-fill {
+            height: 10px;
+            background-color: #007bff;
+            width: 0;
+            animation: loading 2s linear infinite;
+        }
+
+        @keyframes loading {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* 네트워크 상태 */
+        .network-status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .status-good { background-color: #28a745; color: white; }
+        .status-medium { background-color: #ffc107; color: black; }
+        .status-bad { background-color: #dc3545; color: white; }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Live Weather</h1>
+        <div>
+            <input type="text" id="city" placeholder="Enter city name">
+            <button onclick="getWeather()">Get Weather</button>
+        </div>
+        <div id="weather-info"></div>
+        <div id="network-info"></div>
+    </div>
+
+    <div id="search-history">
+        <h4>Search History:</h4>
+        <ul>
+            {% for city in search_history %}
+                <li class="search-item">{{ city }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        async function getWeather() {
+            const city = document.getElementById('city').value.trim();
+            if (!city) {
+                alert('Please enter a city name.');
+                return;
+            }
+
+            const startTime = performance.now();
+            const weatherInfoDiv = document.getElementById('weather-info');
+            const networkInfoDiv = document.getElementById('network-info');
+            weatherInfoDiv.innerHTML = '';  // 초기화
+            networkInfoDiv.innerHTML = '';  // 초기화
+
+            // 로딩바 표시
+            const loadingBar = document.createElement('div');
+            loadingBar.classList.add('loading-bar');
+            const loadingBarFill = document.createElement('div');
+            loadingBarFill.classList.add('loading-bar-fill');
+            loadingBar.appendChild(loadingBarFill);
+            networkInfoDiv.appendChild(loadingBar);
+
+            try {
+                const response = await fetch(`/weather?city=${encodeURIComponent(city)}`);
+                const data = await response.json();
+
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+
+                // 로딩바 제거
+                networkInfoDiv.innerHTML = '';
+
+                if (data.error) {
+                    weatherInfoDiv.innerHTML = `<p class="error">${data.error}</p>`;
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        weatherInfoDiv.innerHTML += `<p>Did you mean: ${data.suggestions.join(', ')}?</p>`;
+                    }
+                } else {
+                    const icon = getWeatherIcon(data.description);
+                    weatherInfoDiv.innerHTML = `
+                        <h3>Weather in ${data.city}</h3>
+                        <p class="icon">${icon}</p>
+                        <p>Temperature: ${data.temperature} °C</p>
+                        <p>Description: ${data.description}</p>
+                    `;
+                }
+
+                // 네트워크 상태 평가 및 표시
+                displayNetworkStatus(duration, response.status, data.client_ip);
+            } catch (error) {
+                networkInfoDiv.innerHTML = `<p class="error">Network error: ${error.message}</p>`;
+            }
+        }
+
+        function displayNetworkStatus(timeTaken, status,clientIp) {
+            const networkInfoDiv = document.getElementById('network-info');
+            let statusMessage = '';
+            let statusClass = '';
+
+            if (timeTaken < 150) {
+                statusMessage = `Network status: Good (${timeTaken} ms)`;
+                statusClass = 'status-good';
+            } else if (timeTaken < 400) {
+                statusMessage = `Network status: Medium (${timeTaken} ms)`;
+                statusClass = 'status-medium';
+            } else {
+                statusMessage = `Network status: Bad (${timeTaken} ms)`;
+                statusClass = 'status-bad';
+            }
+
+            networkInfoDiv.innerHTML = `
+                <h3>Network Information</h3>
+                <p>Request Duration: ${timeTaken} ms</p>
+                <p>Status: ${status}</p>
+                <p>Client IP: ${clientIp}</p>  <!-- 추가된 부분 -->
+                <div class="network-status ${statusClass}">${statusMessage}</div>
+            `;
+        }
+
+        function getWeatherIcon(description) {
+            const lowerCaseDescription = description.toLowerCase();
+            if (lowerCaseDescription.includes('clear')) {
+                return '☀️';
+            } else if (lowerCaseDescription.includes('cloud')) {
+                return '☁️';
+            } else if (lowerCaseDescription.includes('rain')) {
+                return '🌧️';
+            } else if (lowerCaseDescription.includes('snow')) {
+                return '❄️';
+            } else if (lowerCaseDescription.includes('thunderstorm')) {
+                return '⛈️';
+            } else if (lowerCaseDescription.includes('fog')) {
+                return '🌫️';
+            } else {
+                return '🌈';
+            }
+        }
+    </script>
+</body>
+</html>
