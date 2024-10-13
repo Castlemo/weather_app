@@ -14,12 +14,10 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-
-            /* 배경 이미지 설정 */
             background-image: url('/static/image/Clouds.jpg');
-            background-size: cover;       /* 이미지가 화면을 꽉 채우도록 */
-            background-position: center;  /* 이미지의 가운데가 화면에 위치하도록 */
-            background-repeat: no-repeat; /* 이미지가 반복되지 않도록 */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
         
         .container {
@@ -63,7 +61,7 @@
             background-color: #0056b3;
         }
 
-        #weather-info {
+        #weather-info, #advice-info {
             margin-top: 20px;
             padding: 15px;
             border-radius: 5px;
@@ -81,13 +79,13 @@
             border: 1px solid #ddd;
         }
 
-        #weather-info h3, #network-info h3 {
+        #weather-info h3, #network-info h3, #advice-info h3 {
             margin: 0 0 10px 0;
             font-size: 18px;
             color: #333;
         }
 
-        #weather-info p, #network-info p {
+        #weather-info p, #network-info p, #advice-info p {
             margin: 5px 0;
             color: #555;
         }
@@ -96,58 +94,6 @@
             color: red;
             font-weight: bold;
         }
-
-        .icon {
-            font-size: 40px;
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        .search-item {
-            list-style-type: none;
-            margin: 5px 0;
-        }
-
-        .search-item::before {
-            content: "• ";
-            color: #007bff;
-        }
-
-        /* 로딩바 스타일 */
-        .loading-bar {
-            width: 100%;
-            background-color: #f3f3f3;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        .loading-bar-fill {
-            height: 8px;
-            background-color: #007bff;
-            width: 0;
-            animation: loading 1.5s ease-in-out infinite;
-        }
-
-        @keyframes loading {
-            0% { width: 0%; }
-            50% { width: 100%; }
-            100% { width: 0%; }
-        }
-
-        /* 네트워크 상태 */
-        .network-status {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .status-good { background-color: #28a745; color: white; }
-        .status-medium { background-color: #ffc107; color: black; }
-        .status-bad { background-color: #dc3545; color: white; }
-
     </style>
 </head>
 <body>
@@ -158,6 +104,7 @@
             <button onclick="getWeather()">Get Weather</button>
         </div>
         <div id="weather-info"></div>
+        <div id="advice-info"></div> <!-- 추가된 알림 메시지 출력 칸 -->
         <div id="network-info"></div>
     </div>
 
@@ -171,17 +118,11 @@
 
             const startTime = performance.now();
             const weatherInfoDiv = document.getElementById('weather-info');
+            const adviceInfoDiv = document.getElementById('advice-info');
             const networkInfoDiv = document.getElementById('network-info');
             weatherInfoDiv.innerHTML = '';  // 초기화
+            adviceInfoDiv.innerHTML = '';   // 초기화
             networkInfoDiv.innerHTML = '';  // 초기화
-
-            // 로딩바 표시
-            const loadingBar = document.createElement('div');
-            loadingBar.classList.add('loading-bar');
-            const loadingBarFill = document.createElement('div');
-            loadingBarFill.classList.add('loading-bar-fill');
-            loadingBar.appendChild(loadingBarFill);
-            networkInfoDiv.appendChild(loadingBar);
 
             try {
                 const response = await fetch(`/weather?city=${encodeURIComponent(city)}`);
@@ -190,22 +131,23 @@
                 const endTime = performance.now();
                 const duration = (endTime - startTime).toFixed(2);
 
-                // 로딩바 제거
-                networkInfoDiv.innerHTML = '';
-
-                if (data.error) {
+                if (response.status === 200) {
+                    weatherInfoDiv.innerHTML = `
+                        <h3>Weather in ${data.city}</h3>
+                        <p>Temperature: ${data.temperature} °C</p>
+                        <p>Description: ${data.description}</p>
+                    `;
+                    
+                    // 알림 메시지 표시
+                    adviceInfoDiv.innerHTML = `
+                        <h3>Weather Advice</h3>
+                        <p>${data.advice}</p>
+                    `;
+                } else {
                     weatherInfoDiv.innerHTML = `<p class="error">${data.error}</p>`;
                     if (data.suggestions && data.suggestions.length > 0) {
                         weatherInfoDiv.innerHTML += `<p>Did you mean: ${data.suggestions.join(', ')}?</p>`;
                     }
-                } else {
-                    const icon = getWeatherIcon(data.description);
-                    weatherInfoDiv.innerHTML = `
-                        <h3>Weather in ${data.city}</h3>
-                        <p class="icon">${icon}</p>
-                        <p>Temperature: ${data.temperature} °C</p>
-                        <p>Description: ${data.description}</p>
-                    `;
                 }
 
                 // 네트워크 상태 평가 및 표시
@@ -215,7 +157,7 @@
             }
         }
 
-        function displayNetworkStatus(timeTaken, status,clientIp) {
+        function displayNetworkStatus(timeTaken, status, clientIp) {
             const networkInfoDiv = document.getElementById('network-info');
             let statusMessage = '';
             let statusClass = '';
@@ -241,28 +183,9 @@
                 <h3>Network Information</h3>
                 <p>Request Duration: ${timeTaken} ms</p>
                 <p>Status: ${statusServer}</p>
-                <p>Client IP: ${clientIp}</p>  <!-- 추가된 부분 -->
+                <p>Client IP: ${clientIp}</p>
                 <div class="network-status ${statusClass}">${statusMessage}</div>
             `;
-        }
-
-        function getWeatherIcon(description) {
-            const lowerCaseDescription = description.toLowerCase();
-            if (lowerCaseDescription.includes('clear')) {
-                return '☀️';
-            } else if (lowerCaseDescription.includes('cloud')) {
-                return '☁️';
-            } else if (lowerCaseDescription.includes('rain')) {
-                return '🌧️';
-            } else if (lowerCaseDescription.includes('snow')) {
-                return '❄️';
-            } else if (lowerCaseDescription.includes('thunderstorm')) {
-                return '⛈️';
-            } else if (lowerCaseDescription.includes('fog')) {
-                return '🌫️';
-            } else {
-                return '🌈';
-            }
         }
     </script>
 </body>
