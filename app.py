@@ -69,7 +69,7 @@ def get_weather_advice(description, temperature):
         return "눈이 오고 있습니다. 도로가 미끄러울 수 있으니 주의하세요."
     else:
         # GPT-3.5를 이용해 추가적인 날씨 조언 제공 (한국어로 응답하도록 요청)
-        prompt = f"현재 날씨는 {description}이고 온도는 {temperature}도 입니다. 이 날씨에 할 수 있는 활동에 대한 조언을 줄 수 있나요? 대답은 하지 마세요."
+        prompt = f"현재 날씨는 {description}이고 온도는 {temperature}도 입니다. 이 날씨에 입으면 좋은 옷 종류와 이런 날씨에 하면 좋을 활동(예를 들어 캠핑을 간다던지, 강변을 걷는다던지, 러닝을 한다던지 등)을 2가지 정도만 간단하게 제안해줘. 대답은 하지 마세요."
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
