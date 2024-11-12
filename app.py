@@ -37,7 +37,12 @@ def weather():
     if response.status_code == 200:
         data = response.json()
         temperature = data['main']['temp']
+        temp_max = data['main']['temp_max']    # 최고 기온 추가
+        temp_min = data['main']['temp_min']    # 최저 기온 추가
         description = data['weather'][0]['description']
+        humidity = data['main']['humidity']
+        wind_speed = data['wind']['speed']
+        rain = data.get('rain', {}).get('1h', 0)
 
         if city.title() not in search_history:
             search_history.append(city.title())
@@ -48,7 +53,12 @@ def weather():
         return jsonify({
             "city": data['name'],
             "temperature": temperature,
+            "temp_max": temp_max,           # 최고 기온 추가
+            "temp_min": temp_min,           # 최저 기온 추가
             "description": description,
+            "humidity": humidity,
+            "wind_speed": wind_speed,
+            "rain": rain,
             "advice": advice,
             'client_ip': client_ip
         })
@@ -69,14 +79,16 @@ def get_weather_advice(description, temperature):
         return "눈이 오고 있습니다. 도로가 미끄러울 수 있으니 주의하세요."
     else:
         # GPT-3.5를 이용해 추가적인 날씨 조언 제공 (한국어로 응답하도록 요청)
-        prompt = f"현재 날씨는 {description}이고 온도는 {temperature}도 입니다. 이 날씨에 할 수 있는 활동에 대한 조언을 줄 수 있나요? 대답은 하지 마세요."
+        prompt = f"현재 날씨는 {description}이고 기온은 {temperature}도 입니다. 이 날씨에 할 수 있는 활동에 대한 조언을 주세요. 외출할 때 필요한 옷을 디테일하게 추천해주세요. {description}을 나타내야 할 경우 한국어로 번역한 상태여야 합니다. 네/아니오 같은 대답은 하지 마세요."
+        
+        # 새로운 API 형식에 맞게 수정된 부분
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant providing detailed weather-related advice in Korean. Your response should be complete and not cut off."},
+                {"role": "system", "content": "당신은 한국어로 자세한 날씨 관련 조언을 제공하는 도움말 도우미입니다. 답변은 완전해야 하며 중간에 끊기지 않아야 합니다."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=300  # 이전보다 더 많은 토큰 수로 설정
+            max_tokens=1000  # 필요에 따라 토큰 수 조정
         )
         return response['choices'][0]['message']['content'].strip()
 
