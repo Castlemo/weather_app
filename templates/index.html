@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/png" href="/static/favicon.ico">
+    <link rel="icon" type="image/ico" href="/static/image/favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather App</title>
+    <title>Neather-Work</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { 
@@ -145,6 +145,20 @@
             font-weight: bold;
             color: #333;
             margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 90px;
+        }
+
+        .weather-icon i {
+            font-size: 3em;
+            color: #333;
+        }
+
+        .weather-image {
+            width: 120px; /* 이미지 크기 조정 */
+            height: 120px; /* 필요에 따라 높이도 조정 */
+            margin-left: 10px; /* 온도와 이미지 간격 */
         }
 
         .temp-minmax {
@@ -196,18 +210,18 @@
 <body>
     <div class="container">
         <div class="search-section">
-            <h1>Live Weather</h1>
+            <h1>Neather-Work</h1>
             <div>
                 <input type="text" id="city" placeholder="Enter city name">
                 <button onclick="getWeather()">Get Weather</button>
             </div>
         </div>
         
-        <div class="left-column">
+        <div class="left-column" id="left-column">
             <div id="weather-info"></div>
         </div>
         
-        <div class="right-column">
+        <div class="right-column" id="right-column">
             <div id="advice-info"></div>
             <div id="network-info"></div>
         </div>
@@ -237,9 +251,15 @@
                 const duration = (endTime - startTime).toFixed(2);
 
                 if (response.status === 200) {
+                    const weatherImage = getWeatherImage(data.description);
+
+
                     weatherInfoDiv.innerHTML = `
                         <h3>Weather in ${data.city}</h3>
-                        <div class="main-temp">${data.temperature}°C</div>
+                        <div class="main-temp">
+                            ${data.temperature}°C
+                            <img src="${weatherImage}" class="weather-image" alt="${data.description}"/>
+                        </div>
                         <p>${data.description}</p>
                         <div class="weather-grid">
                             <div class="weather-box">
@@ -275,9 +295,10 @@
                     weatherInfoDiv.appendChild(tempMinMaxDiv);
                     
                     adviceInfoDiv.innerHTML = `
-                        <h3>날씨 조언</h3>
+                        <h3>Weather Advice</h3>
                         <p>${data.advice}</p>
                     `;
+
                 } else {
                     weatherInfoDiv.innerHTML = `<p class="error">${data.error}</p>`;
                     if (data.suggestions && data.suggestions.length > 0) {
@@ -292,25 +313,35 @@
             }
         }
 
+        function getWeatherImage(description) {
+            if (description.includes("clear")) return "/static/image/weather_image/sun.png";
+            if (description.includes("cloud")) return "/static/image/weather_image/cloud.png";
+            if (description.includes("rain")) return "/static/image/weather_image/rain.png";
+            if (description.includes("snow")) return "/static/image/weather_image/snow.png";
+            if (description.includes("storm")) return "/static/image/weather_image/storm.png";
+            if (description.includes("smoke") || description.includes("fog") || description.includes("mist")) return "static/image/weather_image/fog.png";
+            else return "fas fa-sun"; // 기본 아이콘
+        }
+
         function displayNetworkStatus(timeTaken, status, clientIp) {
             const networkInfoDiv = document.getElementById('network-info');
             let statusMessage = '';
             let statusClass = '';
             
             if (status === 200) {
-                statusServer = `Client 🔄 Server 🟢🟢🟢 (Status: ${status}) 😊`;
+                statusServer = `Client 🔄 Server 🟢🟢🟢 (Status: ${status})`;
             } else {
-                statusServer = `Client 🔄 Server 🔴🔴🔴 (Status: ${status}) ⚠️`;
+                statusServer = `Client 🔄 Server 🔴🔴🔴 (Status: ${status})`;
             }
 
-            if (timeTaken < 150) {
-                statusMessage = `Network status: Good (${timeTaken} ms)`;
+            if (timeTaken < 3200) {
+                statusMessage = `Network status: Good (${timeTaken} ms) 😊`;
                 statusClass = 'status-good';
-            } else if (timeTaken < 400) {
-                statusMessage = `Network status: Medium (${timeTaken} ms)`;
+            } else if (timeTaken < 4000) {
+                statusMessage = `Network status: Medium (${timeTaken} ms) 😑`;
                 statusClass = 'status-medium';
             } else {
-                statusMessage = `Network status: Bad (${timeTaken} ms)`;
+                statusMessage = `Network status: Bad (${timeTaken} ms) 🤯`;
                 statusClass = 'status-bad';
             }
 

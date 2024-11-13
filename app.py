@@ -79,17 +79,13 @@ def get_weather_advice(description, temperature):
         return "눈이 오고 있습니다. 도로가 미끄러울 수 있으니 주의하세요."
     else:
         # GPT-3.5를 이용해 추가적인 날씨 조언 제공 (한국어로 응답하도록 요청)
-<<<<<<< HEAD
-        prompt = f"현재 날씨는 {description}이고 온도는 {temperature}도 입니다. 이 날씨에 입으면 좋은 옷 종류와 이런 날씨에 하면 좋을 활동(예를 들어 캠핑을 간다던지, 강변을 걷는다던지, 러닝을 한다던지 등)을 2가지 정도만 간단하게 제안해줘. 대답은 하지 마세요."
-=======
-        prompt = f"현재 날씨는 {description}이고 기온은 {temperature}도 입니다. 이 날씨에 할 수 있는 활동에 대한 조언을 주세요. 외출할 때 필요한 옷을 디테일하게 추천해주세요. {description}을 나타내야 할 경우 한국어로 번역한 상태여야 합니다. 네/아니오 같은 대답은 하지 마세요."
+        prompt = f"현재 날씨는 {description}이고 기온은 {temperature}도 입니다. 이 날씨에 할 수 있는 활동에 대한 조언을 2가지 정도 제시해. 예를들어 캠핑을 가기 좋다던지 러닝을 하면 좋다던지 등, 구체적인 활동을 조언해. 또한 외출할 때 필요한 옷 품목을 한두가지 정도만 추천해. {description}을 나타내야 할 경우 한국어로 번역한 상태여야 합니다. 네/아니오 같은 대답은 하지 마세요."
         
         # 새로운 API 형식에 맞게 수정된 부분
->>>>>>> weather_app/choijinwoo
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "당신은 한국어로 자세한 날씨 관련 조언을 제공하는 도움말 도우미입니다. 답변은 완전해야 하며 중간에 끊기지 않아야 합니다."},
+                {"role": "system", "content": "당신은 한국어로 자세하고 깔끔한 날씨 관련 조언을 제공하는 인공지능 비서입니다. 답변은 완전해야 하며 중간에 끊기지 않아야 합니다."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=1000  # 필요에 따라 토큰 수 조정
