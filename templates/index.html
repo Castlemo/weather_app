@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { 
             font-family: 'Roboto', sans-serif;
@@ -21,12 +22,25 @@
         }
         
         .container {
-            max-width: 500px;
+            max-width: 1000px;
             width: 100%;
             padding: 20px;
             border-radius: 10px;
             background-color: #fff;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .left-column, .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .search-section {
+            grid-column: 1 / -1;
             text-align: center;
         }
 
@@ -61,21 +75,11 @@
             background-color: #0056b3;
         }
 
-        #weather-info, #advice-info {
+        #weather-info, #advice-info, #network-info {
             margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
+            padding: 20px;
+            border-radius: 8px;
             background-color: #f9f9f9;
-            text-align: center; 
-            border: 1px solid #ddd;
-        } 
-        
-        #network-info {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            text-align: left;
             border: 1px solid #ddd;
         }
 
@@ -94,18 +98,119 @@
             color: red;
             font-weight: bold;
         }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .weather-box {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .weather-box h4 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .weather-box h4 i {
+            font-size: 16px;
+            color: #007bff;
+        }
+
+        .weather-box .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .weather-box .unit {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .main-temp {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .temp-minmax {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .temp-minmax h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .temp-range {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .temp-box {
+            text-align: center;
+        }
+
+        .temp-box .label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .temp-box .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .temp-box.max .value {
+            color: #ff4444;
+        }
+
+        .temp-box.min .value {
+            color: #4444ff;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Live Weather</h1>
-        <div>
-            <input type="text" id="city" placeholder="Enter city name">
-            <button onclick="getWeather()">Get Weather</button>
+        <div class="search-section">
+            <h1>Live Weather</h1>
+            <div>
+                <input type="text" id="city" placeholder="Enter city name">
+                <button onclick="getWeather()">Get Weather</button>
+            </div>
         </div>
-        <div id="weather-info"></div>
-        <div id="advice-info"></div> <!-- 추가된 알림 메시지 출력 칸 -->
-        <div id="network-info"></div>
+        
+        <div class="left-column">
+            <div id="weather-info"></div>
+        </div>
+        
+        <div class="right-column">
+            <div id="advice-info"></div>
+            <div id="network-info"></div>
+        </div>
     </div>
 
     <script>
@@ -134,13 +239,43 @@
                 if (response.status === 200) {
                     weatherInfoDiv.innerHTML = `
                         <h3>Weather in ${data.city}</h3>
-                        <p>Temperature: ${data.temperature} °C</p>
-                        <p>Description: ${data.description}</p>
+                        <div class="main-temp">${data.temperature}°C</div>
+                        <p>${data.description}</p>
+                        <div class="weather-grid">
+                            <div class="weather-box">
+                                <h4>습도 <i class="fas fa-tint"></i></h4>
+                                <div class="value">${data.humidity}<span class="unit">%</span></div>
+                            </div>
+                            <div class="weather-box">
+                                <h4>바람 <i class="fas fa-wind"></i></h4>
+                                <div class="value">${data.wind_speed}<span class="unit">m/s</span></div>
+                            </div>
+                            <div class="weather-box">
+                                <h4>강수량 <i class="fas fa-cloud-rain"></i></h4>
+                                <div class="value">${data.rain || 0}<span class="unit">mm</span></div>
+                            </div>
+                        </div>
                     `;
+
+                    const tempMinMaxDiv = document.createElement('div');
+                    tempMinMaxDiv.className = 'temp-minmax';
+                    tempMinMaxDiv.innerHTML = `
+                        <h3>오늘의 기온</h3>
+                        <div class="temp-range">
+                            <div class="temp-box max">
+                                <div class="label">최고 기온 <i class="fas fa-temperature-high"></i></div>
+                                <div class="value">${data.temp_max}°C</div>
+                            </div>
+                            <div class="temp-box min">
+                                <div class="label">최저 기온 <i class="fas fa-temperature-low"></i></div>
+                                <div class="value">${data.temp_min}°C</div>
+                            </div>
+                        </div>
+                    `;
+                    weatherInfoDiv.appendChild(tempMinMaxDiv);
                     
-                    // 알림 메시지 표시
                     adviceInfoDiv.innerHTML = `
-                        <h3>Weather Advice</h3>
+                        <h3>날씨 조언</h3>
                         <p>${data.advice}</p>
                     `;
                 } else {
