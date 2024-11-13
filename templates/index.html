@@ -12,6 +12,7 @@
             margin: 0;
             padding: 0;
             display: flex;
+            flex-direction: column; 
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -44,6 +45,17 @@
             text-align: center;
         }
 
+        .title {
+            font-size: 40px;
+            font-weight: bold;
+            color: #333;
+            background-color: #ffffffcc;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+           
+        }
+
         h1 {
             color: #333;
             font-size: 24px;
@@ -68,7 +80,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
         }
 
         button:hover {
@@ -208,9 +220,10 @@
     </style>
 </head>
 <body>
+    <h1 class="title">Neather-Work</h1>
+    
     <div class="container">
         <div class="search-section">
-            <h1>Neather-Work</h1>
             <div>
                 <input type="text" id="city" placeholder="Enter city name">
                 <button onclick="getWeather()">Get Weather</button>
