@@ -43,6 +43,10 @@ def weather():
         humidity = data['main']['humidity']
         wind_speed = data['wind']['speed']
         rain = data.get('rain', {}).get('1h', 0)
+        coordinates = {
+            'lat': data['coord']['lat'],
+            'lon': data['coord']['lon']
+        }
 
         if city.title() not in search_history:
             search_history.append(city.title())
@@ -60,7 +64,8 @@ def weather():
             "wind_speed": wind_speed,
             "rain": rain,
             "advice": advice,
-            'client_ip': client_ip
+            'client_ip': client_ip,
+            'coordinates': coordinates  # 좌표 정보 추가
         })
     elif response.status_code == 404:
         suggestions = get_city_suggestions(city)
@@ -70,27 +75,44 @@ def weather():
 
 
 def get_weather_advice(description, temperature):
-    # 날씨에 따른 맞춤형 일정 추천
+    # 기본 조언 메시지 초기화
+    basic_advice = ""
+    
+    # 날씨에 따른 기본 조언
     if temperature > 35:
-        return "기온이 섭씨 35도를 넘었네요. 오늘은 야외 활동을 피하는 것이 좋겠습니다."
+        basic_advice = "기온이 섭씨 35도를 넘었네요. 오늘은 야외 활동을 피하는 것이 좋겠습니다."
     elif "rain" in description.lower():
-        return "비가 오고 있어요. 우산을 챙기고, 야외 활동은 피하는 것이 좋겠습니다."
+        basic_advice = "비가 오고 있어요. 우산을 챙기고, 야외 활동은 피하는 것이 좋겠습니다."
     elif "snow" in description.lower():
-        return "눈이 오고 있습니다. 도로가 미끄러울 수 있으니 주의하세요."
+        basic_advice = "눈이 오고 있습니다. 도로가 미끄러울 수 있으니 주의하세요."
     else:
-        # GPT-3.5를 이용해 추가적인 날씨 조언 제공 (한국어로 응답하도록 요청)
-        prompt = f"현재 날씨는 {description}이고 기온은 {temperature}도 입니다. 이 날씨에 할 수 있는 활동에 대한 조언을 2가지 정도 제시해. 예를들어 캠핑을 가기 좋다던지 러닝을 하면 좋다던지 등, 구체적인 활동을 조언해. 또한 외출할 때 필요한 옷 품목을 한두가지 정도만 추천해. {description}을 나타내야 할 경우 한국어로 번역한 상태여야 합니다. 네/아니오 같은 대답은 하지 마세요."
-        
-        # 새로운 API 형식에 맞게 수정된 부분
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "당신은 한국어로 자세하고 깔끔한 날씨 관련 조언을 제공하는 인공지능 비서입니다. 답변은 완전해야 하며 중간에 끊기지 않아야 합니다."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=1000  # 필요에 따라 토큰 수 조정
-        )
-        return response['choices'][0]['message']['content'].strip()
+        basic_advice = "날씨가 괜찮네요!"
+
+    # GPT 프롬프트로 상세 조언 받기
+    prompt = f"""현재 날씨: {description}, 기온: {temperature}°C
+
+    다음 내용을 핵심적으로 전달해주세요:
+    - 현재 날씨 상황에 대한 실용적인 조언
+    - 이런 날씨에 추천하는 구체적인 활동
+    - 현재 날씨에 적합한 옷차림
+    
+    * 인사말이나 안부 인사는 제외하고 날씨 정보에만 집중해서 답변해주세요.
+    * 9~10문장 정도로 작성해주세요. "-"나 "*" 같은 기호는 사용하지 않습니다.
+    * 친근하고 자연스러운 말투로 작성해주세요."""
+    
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "당신은 날씨 전문가입니다. 인사말 없이 날씨 정보와 실용적인 조언만을 제공합니다."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.7,
+        max_tokens=400
+    )
+    
+    # 기본 조언과 상세 조언 합치기
+    detailed_advice = response['choices'][0]['message']['content'].strip()
+    return f"{basic_advice}\n\n{detailed_advice}"
 
 
 def get_city_suggestions(input_city):
