@@ -4,6 +4,11 @@ from rapidfuzz import process
 from dotenv import load_dotenv
 import os
 import openai
+from scapy.all import sniff  # scapy 임포트
+import threading
+from collections import deque
+import time
+import json
 
 app = Flask(__name__)
 
@@ -19,6 +24,40 @@ supported_cities = [
 
 # 검색 기록을 저장할 리스트
 search_history = []
+
+# 패킷 수 데이터를 저장할 데크 초기화 (시간당 패킷 수를 저장)
+packet_counts = deque()
+
+def packet_sniffer():
+    # 최근 60초 동안의 패킷 수를 저장하기 위한 변수
+    start_time = time.time()
+    count = 0
+    while True:
+        # 1초 동안 패킷 수를 측정
+        packets = sniff(timeout=1)
+        count = len(packets)
+        current_time = time.time()
+        packet_counts.append((current_time, count))
+
+        # 60초를 넘은 오래된 데이터는 제거
+        while packet_counts and packet_counts[0][0] < current_time - 60:
+            packet_counts.popleft()
+
+sniffer_thread = threading.Thread(target=packet_sniffer)
+sniffer_thread.daemon = True
+sniffer_thread.start()
+
+@app.route('/packet_data')
+def packet_data():
+    # 그래프를 그리기 위한 데이터 생성
+    times = [(time_point - time.time()) for time_point, _ in packet_counts]
+    counts = [count for _, count in packet_counts]
+
+    data = {
+        'times': times,
+        'counts': counts
+    }
+    return jsonify(data)
 
 @app.route('/')
 def index():

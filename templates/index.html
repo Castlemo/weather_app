@@ -325,6 +325,22 @@
             width: 100%;
             height: 100%;
         }
+
+        .network-graph {
+            grid-column: 1 / -1;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        #packet-chart {
+            width: 100%;
+            height: 400px;
+        }
     </style>
 </head>
 <body>
@@ -356,12 +372,18 @@
             <div id="network-info"></div>
         </div>
 
+        <div class="network-graph" id="network-graph" style="display: none;">
+            <h3>Network Packet Graph</h3>
+            <div id="packet-chart"></div>
+        </div>
+
         <div class="map-container">
             <div id="map"></div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script>
         let map = L.map('map').setView([0, 0], 2);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -443,11 +465,24 @@
 
                     // 지도 업데이트
                     updateMap(data.coordinates.lat, data.coordinates.lon, data.city);
+
+                    // 네트워크 그래프 표시
+                    document.getElementById('network-graph').style.display = 'block';
+
+                    // 패킷 데이터 가져오기 시작
+                    fetchPacketData();
+                    // 패킷 데이터 업데이트 인터벌 시작
+                    if (!window.packetDataInterval) {
+                        window.packetDataInterval = setInterval(fetchPacketData, 5000);
+                    }
                 } else {
                     weatherInfoDiv.innerHTML = `<p class="error">${data.error}</p>`;
                     if (data.suggestions && data.suggestions.length > 0) {
                         weatherInfoDiv.innerHTML += `<p>Did you mean: ${data.suggestions.join(', ')}?</p>`;
                     }
+
+                    // 오류 발생 시 그래프 숨김
+                    document.getElementById('network-graph').style.display = 'none';
                 }
 
                 // 네트워크 상태 평가 및 표시
@@ -508,6 +543,31 @@
                 .bindPopup(cityName)
                 .openPopup();
         }
+
+        // 패킷 데이터를 가져와서 그래프를 그리는 함수
+        function fetchPacketData() {
+            fetch('/packet_data')
+                .then(response => response.json())
+                .then(data => {
+                    var trace = {
+                        x: data.times.map(t => -t),  // 시간 순서대로 정렬
+                        y: data.counts,
+                        type: 'scatter'
+                    };
+
+                    var layout = {
+                        title: '최근 60초 동안의 패킷 수',
+                        xaxis: { title: '초 전' },
+                        yaxis: { title: '패킷 수' }
+                    };
+
+                    Plotly.newPlot('packet-chart', [trace], layout);
+                });
+        }
+
+        // 페이지 로드 시 패킷 데이터 가져오기
+        // fetchPacketData();
+        // setInterval(fetchPacketData, 5000);
     </script>
 </body>
 </html>
