@@ -473,15 +473,15 @@
             let statusClass = '';
             
             if (status === 200) {
-                statusServer = `Client 🔄 Server 🟢🟢🟢 (Status: ${status})`;
+                statusServer = `Client 🔄 Server 🟢🟢🟢`;
             } else {
-                statusServer = `Client 🔄 Server 🔴🔴🔴 (Status: ${status})`;
+                statusServer = `Client 🔄 Server 🔴🔴🔴`;
             }
 
-            if (timeTaken < 3200) {
+            if (timeTaken < 12000) {
                 statusMessage = `Network status: Good (${timeTaken} ms) 😊`;
                 statusClass = 'status-good';
-            } else if (timeTaken < 4000) {
+            } else if (timeTaken < 15000) {
                 statusMessage = `Network status: Medium (${timeTaken} ms) 😑`;
                 statusClass = 'status-medium';
             } else {
